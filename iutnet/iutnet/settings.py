@@ -32,10 +32,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "engine",
     "panel",
     "demoapp",
     "social_django",
     "django_celery_results",
+    'rest_framework',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -106,6 +108,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.github.GithubOAuth2',
     'social_core.backends.google.GoogleOAuth2',
@@ -149,3 +159,7 @@ CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
+
+# social auth configs for github
+SOCIAL_AUTH_GITHUB_KEY = 'a07d2d7335453c5442b4'
+SOCIAL_AUTH_GITHUB_SECRET = '16bbc8254056efb2d2f63b03488c78eced8e33df'
