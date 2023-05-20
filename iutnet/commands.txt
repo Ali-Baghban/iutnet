@@ -1,3 +1,0 @@
-On local windows server:
-win  > python -m celery -A iutnet worker --pool=solo -l info
-linux> sudo service redis-server start
