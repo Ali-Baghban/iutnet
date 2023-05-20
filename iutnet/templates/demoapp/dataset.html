@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datasets</title>
+</head>
+<body  style="text-align: center; margin-top: 200px;">
+    <p >
+        <form method="POST" action="">
+            {% csrf_token %}
+            <label for="">Name : </label><input type="text" name="name"><br>
+            <label for="">Description : </label><textarea name="description" cols="30" rows="10"></textarea><br>
+            <label for="">Type : </label><select name="type" id="">
+                <option value="EEG">EEG</option>
+                <option value="fMRI">fMRI</option>
+            </select><br>
+            <label for="">Research field : </label><select name="research_field" id="">
+                <option value="MI">Motot Imagery</option>
+                <option value="ERP">ERP</option>
+            </select><br>
+            <label for="">Data link : </label><input type="text" name="data_link"><br>
+            <label for="">Related Paper: </label><select name="related_paper" id="">
+                <option value="None" selected>None of below</option>
+                {% if rp %}
+                {% for p in rp %}
+                    <option value="{{ p.doi }}">{{ p.title }}</option>
+                {% endfor %}
+                {% endif%}
+            </select><br>
+            <label for="">Your Paper DOI : </label><input type="text" name="doi"><br>
+            <label for="">Is private ? </label><input type="checkbox" name="private" value="True" checked><br>
+            <input type="submit" name="submit" value="submit">
+        </form>
+        </p>
+</body>
+</html>

@@ -1,0 +1,12 @@
+user            = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True)
+    model           = models.OneToOneField('AiModel',on_delete=models.CASCADE)
+    dataset         = models.OneToOneField('Dataset', on_delete=models.CASCADE)
+    start_time      = models.DateTimeField(auto_now=True)
+    end_time        = models.DateTimeField(default=None)
+
+    <form>
+        <label for="fname">First name:</label><br>
+        <input type="text" id="fname" name="fname"><br>
+        <label for="lname">Last name:</label><br>
+        <input type="text" id="lname" name="lname">
+      </form>
