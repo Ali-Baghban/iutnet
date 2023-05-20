@@ -1,12 +1,13 @@
 # Create your tasks here
 
 from demoapp.models import Widget
-
+from time import sleep
 from celery import shared_task
 
 
 @shared_task
 def add(x, y):
+    sleep(5)
     return x + y
 
 
@@ -32,5 +33,6 @@ def rename_widget(widget_id, name):
     w.save()
     
 @shared_task
-def hello():
-    return "Ali Baghban"
+def test_string():
+    sleep(10)
+    return 'Ali Baghban'

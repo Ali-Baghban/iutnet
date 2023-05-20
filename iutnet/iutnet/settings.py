@@ -154,7 +154,8 @@ CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672'
+#CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672'
+CELERY_BROKER_URL = 'redis://localhost:6379'
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
