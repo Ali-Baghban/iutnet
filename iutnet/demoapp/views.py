@@ -1,15 +1,55 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from .tasks import add, mul, test_string
+from .tasks import add, mul, test_string, sub_test
 from .models import *
 # Create your views here.
+from django_celery_results.models import TaskResult
+from django.http import JsonResponse
+from django_q.tasks import async_task
+
+def test_qdjango(request,s):
+    json_payload = {
+        "message": "hello world!"
+    }
+    opts = {
+        #'task_name':'sleep_and_print',
+        'group': 'test_sleep',
+            }
+    async_task("demoapp.services.sleep_and_print", s, q_options=opts)
+    #async_task("demoapp.services.subprocess_test", q_options=opts)
+
+    return JsonResponse(json_payload)
 
 def test_celery(request):
     #x = add.delay(5,4)
+    w = sub_test.delay()
     x = add.delay(5,6)
     y = mul.delay(5,9)
     z = test_string.delay()
-    return HttpResponse("We are tring on the process ...")
+
+    return HttpResponse("We are trying on the process ..."+str(x.id))
+
+def celery_result(request):
+    
+    results = TaskResult.objects.all()
+    context = {'results': results}
+    return render(request, "demoapp/celery_results.html", context=context)
+
+def paper_add(request):
+    if request.method == "POST":
+        title           = request.POST.get('title')
+        abstract        = request.POST.get('abstract')
+        published_year  = request.POST.get('published_year')
+        doi             = request.POST.get('doi')
+        Paper.objects.create(title=title, abstract=abstract, published_year=published_year, doi=doi)
+        return redirect('paper_list')
+    else:
+        return render(request, 'demoapp/paper_add.html')
+
+def paper_list(request):
+    papers = Paper.objects.all()
+    context = {'papers' : papers}
+    return render(request, 'demoapp/paper_list.html', context=context)
 
 def dataset_add(request):
     rp = Paper.objects.all()

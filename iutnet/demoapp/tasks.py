@@ -3,13 +3,18 @@
 from demoapp.models import Widget
 from time import sleep
 from celery import shared_task
-
+import subprocess
 
 @shared_task
 def add(x, y):
     sleep(5)
     return x + y
 
+@shared_task
+def sub_test():
+    x = subprocess.run(["python","./scripts/testme.py"], capture_output=True)
+    print(x)
+    return "Done !!!"
 
 @shared_task
 def mul(x, y):

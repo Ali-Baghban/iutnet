@@ -1,7 +1,11 @@
 from django.urls import path
-from .views import test_celery, dataset_add
+from .views import *
 
 urlpatterns = [
-    path('add', test_celery, name='add-celery'),
+    path('test_qdjango/<int:s>', test_qdjango, name="Qdjango"),
+    path('add', test_celery, name='add_celery'),
+    path('celery', celery_result, name='celery_results'),
     path('dataset', dataset_add, name="dataset_add"),
+    path('paper', paper_add, name="paper_add"),
+    path('papers', paper_list, name="paper_list"),
 ]

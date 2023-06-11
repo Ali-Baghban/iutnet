@@ -1,6 +1,9 @@
 from panel.models import Profile
 from django.db import models
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .services import sleep_and_print
+from django_q.tasks import async_task
 
 class Paper(models.Model):
     title = models.CharField(max_length=200, default=None)
@@ -10,6 +13,13 @@ class Paper(models.Model):
 
     def __str__(self):
         return self.title
+@receiver(post_save, sender=Paper)
+def create_paper(sender, instance, created, **kwargs):
+    if created:
+        opts = {
+            'group': 'paper_add'
+        }
+        async_task(sleep_and_print, 5, q_options=opts)
 
 class Dataset(models.Model):
     name            = models.CharField(max_length=25, default=None)
@@ -18,13 +28,24 @@ class Dataset(models.Model):
     type            = models.CharField(choices=TYPE_CHOICE, default='EEG', max_length=10)
     FIELD_CHOICE    = [('MI','Motor Imagery'), ('ERP','ERP')]
     research_field  = models.CharField(choices=FIELD_CHOICE, default='MI', max_length=20)
-    data            = models.FileField(upload_to='models/Ai/%Y/%m/%d/', default=None)
+    dataset_link    = models.URLField(blank=False, null=True, max_length=500)
+    dataset_path    = models.CharField(max_length=256, null=True)
     related_paper   = models.ManyToManyField('Paper', blank=True, default=None)
     related_models  = models.ManyToManyField('AiModel', blank=True, default=None)
     private         = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+@receiver(post_save, sender=Dataset)
+def dataset_processing(sender, instance, created, **kwargs):
+    if created:
+        dataset_link  = instance.dataset_link
+        name          = instance.name
+        opts = {
+        'group':'Dataset processing demo',
+        }
+        print("OK boy !", name, dataset_link)
+        async_task("demoapp.services.dataset_process", dataset_link, name, q_options=opts)
 
 class AiModel(models.Model):
     name            = models.CharField(max_length=25, default='Test-dataset')
