@@ -1,4 +1,4 @@
-import requests, zipfile, time
+import requests, zipfile, time, mne, glob
 
 class downloader:
 
@@ -27,3 +27,80 @@ class archive:
     def unzip(source,path='./'):
         with zipfile.ZipFile(source, 'r') as zip_ref:
             zip_ref.extractall(path)
+
+class Preprocessor:
+    def __init__(
+            self,data_path,event_id,montage=False,montage_type="standard_1005",
+            filtering=True,l_freq=7.0,h_freq=30.0,events_from="annotations",
+            on_missing="warn",tmin=-1.0,tmax=4.0
+            ):
+        self.data_path      = data_path
+        self.montage        = montage
+        self.montage_type   = montage_type
+        self.filtering      = filtering
+        self.l_freq         = l_freq 
+        self.h_freq         = h_freq
+        self.events_from    = events_from
+        self.event_id       = event_id
+        self.tmin           = tmin
+        self.tmax           = tmax
+    
+    def create_reader(self):
+            dict = {
+                'edf': mne.io.read_raw_edf(),
+                'gdf': mne.io.read_raw_gdf(),
+            }
+            return dict
+    def read_raw(self,path):
+        raw = mne.io.read_raw_gdf(path, eog=['EOG:ch01', 'EOG:ch02', 'EOG:ch03'], preload=True)
+        raw.pick_types(meg=False, eeg=True, stim=False, eog=False, exclude="bads")
+        return raw
+
+    def data_loader(self):
+        path = glob.glob(self.data_path+'/*')
+        if len(path) > 0 :
+            extention = path[0].split('.')[-1]
+            path = glob.glob(self.data_path+"/*."+extention)
+        ######################
+        # select reader type
+        ######################
+        raw_array = [self.read_raw(i) for i in path]
+        raw = mne.concatenate_raws([i for i in raw_array])
+        if self.montage is True:
+            montage = mne.channels.make_standard_montage(self.montage_type)
+            raw.set_montage(montage)
+        if self.filtering is True:
+            # Apply band-pass filter
+            raw.filter(l_freq=self.l_freq, h_freq=self.h_freq, fir_design="firwin", skip_by_annotation="edge")
+        return raw
+    def events_maker(self, raw):
+        if self.events_from == 'annotations':
+            events = mne.events_from_annotations(raw)
+        elif self.events_from == 'stim':
+            pass
+        return events
+    def epochs_maker(self,raw,events):
+        picks   = mne.pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False, exclude="bads")
+        epochs  = mne.Epochs(
+            raw         = self.raw,
+            events      = self.events[0],
+            event_id    = self.event_id,
+            tmin        = self.tmin,
+            tmax        = self.tmax,
+            proj        = True,
+            picks       = picks,
+            baseline    = None,
+            on_missing  = self.on_missing,
+            preload     = True,
+        )
+        labels  = epochs.events[:,-1]
+
+        return epochs, labels
+    def runner(self):
+        raw             = self.data_loader()
+        events          = self.events_maker(raw=raw)
+        epochs, labels  = self.epochs_maker(raw=raw,events=events)
+        return epochs, labels
+
+        
+

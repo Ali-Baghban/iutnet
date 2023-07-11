@@ -5,7 +5,7 @@ from .models import *
 # Create your views here.
 from django_celery_results.models import TaskResult
 from django.http import JsonResponse
-from django_q.tasks import async_task
+from django_q.tasks import async_task, result
 
 def test_qdjango(request,s):
     json_payload = {
@@ -13,9 +13,12 @@ def test_qdjango(request,s):
     }
     opts = {
         #'task_name':'sleep_and_print',
+        
         'group': 'test_sleep',
             }
-    async_task("demoapp.services.sleep_and_print", s, q_options=opts)
+    
+    x = async_task("demoapp.services.sleep_and_print", s, q_options=opts)
+    print (result(x,2))
     #async_task("demoapp.services.subprocess_test", q_options=opts)
 
     return JsonResponse(json_payload)

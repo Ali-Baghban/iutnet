@@ -5,7 +5,6 @@ from PIL import Image
 # Extending User Model Using a One-To-One Link
 class Profile(models.Model):
     user    = models.OneToOneField(User, on_delete=models.CASCADE)
-
     avatar  = models.ImageField(default='profile_images/default.png', upload_to='profile_images/')
     bio     = models.TextField()
     phone   = models.CharField(default='+9890000000000', max_length=15)
