@@ -30,10 +30,11 @@ class archive:
 
 class Preprocessor:
     def __init__(
-            self,data_path,event_id,montage=False,montage_type="standard_1005",
+            self, request_id, data_path,event_id,montage=False,montage_type="standard_1005",
             filtering=True,l_freq=7.0,h_freq=30.0,events_from="annotations",
             on_missing="warn",tmin=-1.0,tmax=4.0
             ):
+        self.request_id     = request_id
         self.data_path      = data_path
         self.montage        = montage
         self.montage_type   = montage_type
@@ -42,8 +43,10 @@ class Preprocessor:
         self.h_freq         = h_freq
         self.events_from    = events_from
         self.event_id       = event_id
+        self.on_missing     = on_missing
         self.tmin           = tmin
         self.tmax           = tmax
+
     
     def create_reader(self):
             dict = {
@@ -52,7 +55,7 @@ class Preprocessor:
             }
             return dict
     def read_raw(self,path):
-        raw = mne.io.read_raw_gdf(path, eog=['EOG:ch01', 'EOG:ch02', 'EOG:ch03'], preload=True)
+        raw = mne.io.read_raw_gdf(path, eog=['EOG:ch01', 'EOG:ch02', 'EOG:ch03'], preload=True, verbose=False)
         raw.pick_types(meg=False, eeg=True, stim=False, eog=False, exclude="bads")
         return raw
 
@@ -69,7 +72,7 @@ class Preprocessor:
         if self.montage is True:
             montage = mne.channels.make_standard_montage(self.montage_type)
             raw.set_montage(montage)
-        if self.filtering is True:
+        if self.filtering is not False:
             # Apply band-pass filter
             raw.filter(l_freq=self.l_freq, h_freq=self.h_freq, fir_design="firwin", skip_by_annotation="edge")
         return raw
@@ -82,8 +85,8 @@ class Preprocessor:
     def epochs_maker(self,raw,events):
         picks   = mne.pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False, exclude="bads")
         epochs  = mne.Epochs(
-            raw         = self.raw,
-            events      = self.events[0],
+            raw         = raw,
+            events      = events[0],
             event_id    = self.event_id,
             tmin        = self.tmin,
             tmax        = self.tmax,
@@ -96,11 +99,16 @@ class Preprocessor:
         labels  = epochs.events[:,-1]
 
         return epochs, labels
+    def epochs_save(self,epochs):
+        request_id = str(self.request_id)
+        mne.Epochs.save(epochs,fname='./media/epochs/'+request_id+'-epo.fif',split_size='2GB')
     def runner(self):
         raw             = self.data_loader()
         events          = self.events_maker(raw=raw)
         epochs, labels  = self.epochs_maker(raw=raw,events=events)
-        return epochs, labels
+        data            = epochs.get_data()
+        self.epochs_save(epochs=epochs)
+        return data, epochs, labels
 
         
 

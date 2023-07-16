@@ -10,6 +10,7 @@ def hooker(task):
 def sleep_and_print(secs):
     sleep(secs)
     path = "XXX"
+    model_trainer_test()
     print("Task ran!")
     return path
 
@@ -25,15 +26,27 @@ def dataset_process(model, dataset_link, name):
     model.ready_to_use = True
     model.save()
 
-def request_process(user, model, dataset, start_time):
+def request_process(instance,user, ai_model, dataset):
     data_path = dataset.dataset_path
-    event_id  = [10,11]
+    event_id  = [int(item) for item in instance.event_id.split(',')]
     preprocessor = Preprocessor(
-        data_path, event_id, montage=False, montage_type="standard_1005",
-        filtering=True, l_freq=7.0, h_freq=30.0, events_from="annotations",
-        on_missing="warn", tmin=-1.0, tmax=4.0
+        request_id = instance.id,
+        data_path=data_path, event_id=event_id, montage=instance.montage, montage_type=instance.montage_type,
+        filtering=True, l_freq=instance.low_band, h_freq=instance.high_band, events_from=instance.event_from,
+        on_missing=instance.on_missing, tmin=instance.tmin, tmax=instance.tmax
     )
-    preprocessor.runner()
-    model.accuracy = 100
-    
+    data = preprocessor.runner()
+    instance.output_shape   = data[0].shape
+    instance.save()
+
+    '''instance.end_time       = datetime.now()
+    instance.status         = True
+    ai_model.accuracy       = 85
+    ai_model.save()'''
+
+def model_trainer(ai_model=None,option='train'):
+    subprocess.Popen(["python","./media/Ai_models/testmodel_1.py"])
+
+def model_trainer_test(ai_model=None,option='train'):
+    subprocess.Popen(["python","./media/Ai_models/test.py","Ali","Baghban"])
 

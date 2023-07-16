@@ -1,3 +1,5 @@
+import datetime
+
 from panel.models import Profile
 from django.db import models
 from django.db.models.signals import post_save, post_delete
@@ -75,12 +77,34 @@ class AiModel(models.Model):
 
 class Request(models.Model):
 
-    user            = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True, related_name='demo_request')
-    model           = models.OneToOneField('AiModel',on_delete=models.CASCADE)
-    dataset         = models.OneToOneField('Dataset', on_delete=models.CASCADE)
-    start_time      = models.DateTimeField(auto_now=True)
-    end_time        = models.DateTimeField(default=None)
-
+    user            = models.ForeignKey('panel.Profile', on_delete=models.CASCADE,null=True, related_name='demo_request')
+    ai_model        = models.ForeignKey('AiModel', on_delete=models.CASCADE, null=True)
+    dataset         = models.ForeignKey('Dataset', on_delete=models.CASCADE, null=True)
+    test_size       = models.FloatField(max_length=5, default=0.3)
+    tmin            = models.FloatField(max_length=5, default=-1)
+    tmax            = models.FloatField(max_length=5, default=4)
+    event_id        = models.CharField(max_length=30,default="10,11")
+    MONTAGE_OPT     = [(False,'None'),('standard_1005','standard_1005'),('standard_1020','standard_1020')]
+    montage         = models.BooleanField(default=False)
+    montage_type    = models.CharField(choices=MONTAGE_OPT, default='standard_1020', max_length=20)
+    FILTER_OPT      = [(False,'None'),('Bandpass', 'Bandpass')]
+    filter          = models.CharField(choices=FILTER_OPT, default=False, max_length=20)
+    low_band        = models.FloatField(default=7.0)
+    high_band       = models.FloatField(default=30.0)
+    EVENT_OPT       = [('annotations','annotations'),('stim','stim')]
+    event_from      = models.CharField(max_length=12,choices=EVENT_OPT, default='Annotations')
+    MISSING_OPT     = [('Warn', 'warn'), ('x', 'x')]
+    on_missing      = models.CharField(max_length=12,choices=MISSING_OPT, default='Warn')
+    Stim_Chan       = models.CharField(max_length=100, default='')
+    EEG_Chan        = models.CharField(max_length=200, default='')
+    EOG_Chan        = models.CharField(max_length=200, default="'EOG:ch01', 'EOG:ch02', 'EOG:ch03'")
+    exclude         = models.CharField(max_length=20, default="bads")
+    projection      = models.BooleanField(default=True)
+    baseline        = models.CharField(max_length=20, default='None')
+    start_time      = models.DateTimeField(default=datetime.datetime.now(), null=True)
+    end_time        = models.DateTimeField(null=True, blank=True)
+    status          = models.BooleanField(default=False)
+    output_shape    = models.CharField(max_length=50, default="(1000,3,250)")
     def __str__(self):
          return self.user.user.username
     
@@ -88,21 +112,14 @@ class Request(models.Model):
 def dataset_processing(sender, instance, created, **kwargs):
     if created:
         user        = instance.user
-        model       = instance.model
-        dataset     = instance,dataset
-        start_time  = instance.start_time
+        ai_model    = instance.ai_model
+        dataset     = instance.dataset
+        instance    = instance
         opts = {
         'group':'Request processing demo',
         }
-        async_task("demoapp.services.request_process", user, model, dataset, start_time, q_options=opts)
-
-
-
-
-
-
-
-
+        async_task("demoapp.services.request_process",instance, user, ai_model, dataset, q_options=opts)
+        #async_task("demoapp.services.request_process", instance, q_options=opts)
 
 
 class Widget(models.Model):

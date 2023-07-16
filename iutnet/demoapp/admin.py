@@ -8,8 +8,9 @@ class DatasetAdmin(admin.ModelAdmin):
     list_filter = ('is_published','city', 'is_best_deal')
     search_fields = ('title','realtor','price','bedrooms','bathrooms')
     list_per_page = 25"""
-
+class RequestAdmin(admin.ModelAdmin):
+    list_display = ('user','start_time','status',)
 admin.site.register(Paper)
 admin.site.register(Dataset, DatasetAdmin)
 admin.site.register(AiModel)
-admin.site.register(Request)
+admin.site.register(Request,RequestAdmin)
