@@ -1,8 +1,12 @@
 import sys, os, django
-sys.path.append("iutnet") #here store is root folder(means parent).
+from pathlib import Path
+#print(sys.path, os.environ.values())
+
+sys.path.append(str(Path.cwd().parent.parent)) #here store is root folder(means parent).
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "iutnet.settings")
 django.setup()
 
+'''
 from demoapp import models
 #while True:
 #    name = input('Enter a name => ')
@@ -16,5 +20,4 @@ from demoapp import models
 objs = models.Request.objects.all()
 for obj in objs:
     print(obj.id)
-
-print(sys.path)
+'''

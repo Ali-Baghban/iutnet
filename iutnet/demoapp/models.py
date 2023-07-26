@@ -57,24 +57,37 @@ def dataset_delete(sender, instance,  **kwargs):
     shutil.rmtree(path)
 
 class AiModel(models.Model):
-    name            = models.CharField(max_length=25, default='Test-dataset')
+    name            = models.CharField(max_length=25,)
     description     = models.TextField(default=None, blank=True)
     Framework_CHOICE= [('Keras','Keras'), ('Pytorch','Pytorch')]
     framework       = models.CharField(choices=Framework_CHOICE, default='Keras', max_length=10)
     Approach_CHOICE = [('DL','Deep Learning'), ('ML','Machine Learning')]
     approach        = models.CharField(choices=Approach_CHOICE, default='ML', max_length=20)
-    model           = models.FileField(upload_to='models/Ai/%Y/%m/%d/', default=None, blank=True)
-    model_code      = models.TextField(default=None, blank=True)
-    related_paper   = models.ManyToManyField('Paper',default=None)
-    related_dataset = models.OneToOneField('Dataset', on_delete=models.CASCADE) 
+    model           = models.FileField(upload_to='Ai_models/', default=None, blank=True)
+    model_code      = models.TextField(null=True, blank=True)
+    related_paper   = models.ManyToManyField('Paper',blank=True)
+    related_dataset = models.ManyToManyField('Dataset', blank=True)
     accuracy        = models.FloatField(default=0.0)
     precision       = models.FloatField(default=0.0)
     recall          = models.FloatField(default=0.0)
+    results_json    = models.TextField(blank=True)
     private         = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
-
+@receiver(post_save, sender=AiModel)
+def dataset_processing(sender, instance, created, **kwargs):
+    if created:
+        if len(instance.model.path) > 0:
+            model_file_path = instance.model.path
+            ext = model_file_path.split('.')[-1]
+            if ext in 'py' or ext in 'PY' :
+                with open(model_file_path) as temp:
+                    code                = "#This is the first version of the uploaded Ai model that may be updated later\n\n" \
+                                          "##################################################################\n\n"
+                    code                = code + temp.read()
+                    instance.model_code = code
+                    instance.save()
 class Request(models.Model):
 
     user            = models.ForeignKey('panel.Profile', on_delete=models.CASCADE,null=True, related_name='demo_request')
@@ -88,15 +101,15 @@ class Request(models.Model):
     montage         = models.BooleanField(default=False)
     montage_type    = models.CharField(choices=MONTAGE_OPT, default='standard_1020', max_length=20)
     FILTER_OPT      = [(False,'None'),('Bandpass', 'Bandpass')]
-    filter          = models.CharField(choices=FILTER_OPT, default=False, max_length=20)
+    filter          = models.CharField(choices=FILTER_OPT, default='Bandpass', max_length=20)
     low_band        = models.FloatField(default=7.0)
     high_band       = models.FloatField(default=30.0)
     EVENT_OPT       = [('annotations','annotations'),('stim','stim')]
     event_from      = models.CharField(max_length=12,choices=EVENT_OPT, default='Annotations')
     MISSING_OPT     = [('Warn', 'warn'), ('x', 'x')]
     on_missing      = models.CharField(max_length=12,choices=MISSING_OPT, default='Warn')
-    Stim_Chan       = models.CharField(max_length=100, default='')
-    EEG_Chan        = models.CharField(max_length=200, default='')
+    Stim_Chan       = models.CharField(max_length=100, blank=True)
+    EEG_Chan        = models.CharField(max_length=200, blank=True)
     EOG_Chan        = models.CharField(max_length=200, default="'EOG:ch01', 'EOG:ch02', 'EOG:ch03'")
     exclude         = models.CharField(max_length=20, default="bads")
     projection      = models.BooleanField(default=True)
@@ -105,20 +118,18 @@ class Request(models.Model):
     end_time        = models.DateTimeField(null=True, blank=True)
     status          = models.BooleanField(default=False)
     output_shape    = models.CharField(max_length=50, default="(1000,3,250)")
+    request_id_hash = models.CharField(max_length=33, blank=True)
     def __str__(self):
          return self.user.user.username
     
 @receiver(post_save, sender=Request)
 def dataset_processing(sender, instance, created, **kwargs):
     if created:
-        user        = instance.user
-        ai_model    = instance.ai_model
-        dataset     = instance.dataset
         instance    = instance
         opts = {
-        'group':'Request processing demo',
+        'group':'Request processing demo v2',
         }
-        async_task("demoapp.services.request_process",instance, user, ai_model, dataset, q_options=opts)
+        async_task("demoapp.services.request_process",instance, q_options=opts)
         #async_task("demoapp.services.request_process", instance, q_options=opts)
 
 

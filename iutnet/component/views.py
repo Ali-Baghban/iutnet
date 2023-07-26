@@ -1,5 +1,5 @@
-import requests, zipfile, time, mne, glob
-
+import requests, zipfile, time, mne, glob, hashlib
+import subprocess
 class downloader:
 
     def __init__(self):
@@ -34,7 +34,7 @@ class Preprocessor:
             filtering=True,l_freq=7.0,h_freq=30.0,events_from="annotations",
             on_missing="warn",tmin=-1.0,tmax=4.0
             ):
-        self.request_id     = request_id
+        self.request_id     = hashlib.md5(str(request_id).encode('utf-8')).hexdigest()
         self.data_path      = data_path
         self.montage        = montage
         self.montage_type   = montage_type
@@ -46,7 +46,7 @@ class Preprocessor:
         self.on_missing     = on_missing
         self.tmin           = tmin
         self.tmax           = tmax
-
+        self.fname_path     = './media/epochs/'
     
     def create_reader(self):
             dict = {
@@ -100,8 +100,8 @@ class Preprocessor:
 
         return epochs, labels
     def epochs_save(self,epochs):
-        request_id = str(self.request_id)
-        mne.Epochs.save(epochs,fname='./media/epochs/'+request_id+'-epo.fif',split_size='2GB')
+        fname = self.fname_path+self.request_id+'-epo.fif'
+        mne.Epochs.save(epochs,fname=fname,split_size='2GB')
     def runner(self):
         raw             = self.data_loader()
         events          = self.events_maker(raw=raw)
@@ -110,5 +110,17 @@ class Preprocessor:
         self.epochs_save(epochs=epochs)
         return data, epochs, labels
 
-        
+class ModelTrainer:
+    '''def __int__(self, request_id):
+        self.request_id = hashlib.md5(str(request_id).encode('utf-8')).hexdigest()
+        self.fname_path = './media/epochs/'
+        '''
+
+    def get_request_id(self,request_id):
+        encoded_request_id = hashlib.md5(str(request_id).encode('utf-8')).hexdigest()
+        return encoded_request_id
+
+    def runner(self,model_path,request_id):
+        subprocess.Popen(["python", model_path, request_id])
+
 

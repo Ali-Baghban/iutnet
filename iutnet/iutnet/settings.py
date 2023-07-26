@@ -169,4 +169,5 @@ SOCIAL_AUTH_GITHUB_SECRET = '16bbc8254056efb2d2f63b03488c78eced8e33df'
 
 Q_CLUSTER = {
    'cached': False,
+    'retry': 5000
 }
