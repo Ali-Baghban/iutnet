@@ -67,10 +67,6 @@ class AiModel(models.Model):
     model_code      = models.TextField(null=True, blank=True)
     related_paper   = models.ManyToManyField('Paper',blank=True)
     related_dataset = models.ManyToManyField('Dataset', blank=True)
-    accuracy        = models.FloatField(default=0.0)
-    precision       = models.FloatField(default=0.0)
-    recall          = models.FloatField(default=0.0)
-    results_json    = models.TextField(blank=True)
     private         = models.BooleanField(default=False)
 
     def __str__(self):
@@ -114,10 +110,16 @@ class Request(models.Model):
     exclude         = models.CharField(max_length=20, default="bads")
     projection      = models.BooleanField(default=True)
     baseline        = models.CharField(max_length=20, default='None')
-    start_time      = models.DateTimeField(default=datetime.datetime.now(), null=True)
+    start_time      = models.DateTimeField(default=datetime.datetime.now, null=True)
     end_time        = models.DateTimeField(null=True, blank=True)
     status          = models.BooleanField(default=False)
     output_shape    = models.CharField(max_length=50, default="(1000,3,250)")
+    accuracy        = models.FloatField(default=0.0)
+    precision       = models.FloatField(default=0.0)
+    recall          = models.FloatField(default=0.0)
+    results_json    = models.TextField(blank=True)
+    trained_model   = models.FileField(blank=True)
+    private         = models.BooleanField(default=False)
     request_id_hash = models.CharField(max_length=33, blank=True)
     def __str__(self):
          return self.user.user.username

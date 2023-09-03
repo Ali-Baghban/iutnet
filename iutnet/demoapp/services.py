@@ -44,9 +44,6 @@ def request_process(instance):
     model_path                  = instance.ai_model.model.path
     print(model_path)
     trainer.runner(model_path=model_path,request_id=encoded_request_id)
-    instance.end_time           = datetime.now()
-    instance.status             = True
-    instance.ai_model.accuracy  = 85.85
     instance.request_id_hash    = encoded_request_id
     instance.save()
     instance.ai_model.save()

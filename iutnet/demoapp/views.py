@@ -9,7 +9,7 @@ from django_q.tasks import async_task, result
 
 def test_qdjango(request,s):
     json_payload = {
-        "message": "hello world!"
+        "message": "Good morning dear Dr. Zali ... :)"
     }
     opts = {
         #'task_name':'sleep_and_print',
@@ -99,3 +99,36 @@ def dataset_add(request):
     else:
         context = {'rp': rp}
         return render(request, 'demoapp/dataset.html', context=context)
+
+import matplotlib.pyplot as plt
+import io
+import urllib, base64
+
+def create_plot():
+    plt.figure()
+    x = [2.5166141986846924, 2.4337246417999268, 2.3756425380706787, 2.320280075073242, 2.263989210128784,
+              2.204336166381836, 2.139326810836792, 2.064134120941162, 1.9762555360794067, 1.8678804636001587]
+    y = [2.4625356197357178, 2.408228635787964, 2.3579623699188232, 2.30776047706604, 2.2547502517700195,
+                  2.1977176666259766, 2.1339569091796875, 2.0592479705810547, 1.967551350593567, 1.8528684377670288]
+    {"loss": [2.5166141986846924, 2.4337246417999268, 2.3756425380706787, 2.320280075073242, 2.263989210128784,
+              2.204336166381836, 2.139326810836792, 2.064134120941162, 1.9762555360794067, 1.8678804636001587],
+     "accuracy": [0.0, 0.3660714328289032, 0.7142857313156128, 0.7053571343421936, 0.6785714030265808,
+                  0.6071428656578064, 0.5892857313156128, 0.5535714030265808, 0.5, 0.5178571343421936],
+     "val_loss": [2.4625356197357178, 2.408228635787964, 2.3579623699188232, 2.30776047706604, 2.2547502517700195,
+                  2.1977176666259766, 2.1339569091796875, 2.0592479705810547, 1.967551350593567, 1.8528684377670288],
+     "val_accuracy": [0.0416666679084301, 0.4583333432674408, 0.5208333134651184, 0.5416666865348816,
+                      0.5208333134651184, 0.5, 0.4791666567325592, 0.5, 0.5, 0.5]}
+    plt.title("Model Metrics")
+    plt.plot(x, y)
+
+    # Convert plot to PNG image
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+
+    uri = urllib.parse.quote(string)
+    return uri
+def plot_view(request):
+    plot = create_plot()
+    return render(request, 'demoapp/plot.html', {'plot': plot})

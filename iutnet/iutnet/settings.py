@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'django_q',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -168,6 +169,13 @@ SOCIAL_AUTH_GITHUB_KEY = 'a07d2d7335453c5442b4'
 SOCIAL_AUTH_GITHUB_SECRET = '16bbc8254056efb2d2f63b03488c78eced8e33df'
 
 Q_CLUSTER = {
-   'cached': False,
-    'retry': 5000
+    'cached':False,
+    'timeout':9999999,
+    'retry': 9999999,
+    'orm': 'default',
+
+}
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
 }

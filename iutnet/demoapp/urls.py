@@ -8,4 +8,5 @@ urlpatterns = [
     path('dataset', dataset_add, name="dataset_add"),
     path('paper', paper_add, name="paper_add"),
     path('papers', paper_list, name="paper_list"),
+    path('plot/', plot_view, name='plot'),
 ]
